@@ -1,101 +1,162 @@
-import Image from "next/image";
+"use client";
+import { useState, useEffect } from "react";
+import type { Post } from "@/app/_types/Post";
+import PostSummary from "@/app/_components/PostSummary";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import Link from "next/link";
+import type { PostApiResponse } from "@/app/_types/PostApiResponse";
 
-export default function Home() {
+const Page: React.FC = () => {
+  // 投稿データを「状態」として管理 (初期値はnull)
+  const [posts, setPosts] = useState<Post[] | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [showDetails1, setShowDetails1] = useState<boolean>(false);
+  const [showDetails2, setShowDetails2] = useState<boolean>(false);
+  const [showDetails3, setShowDetails3] = useState<boolean>(false);
+  // コンポーネントが読み込まれたときに「1回だけ」実行する処理
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const requestUrl = `/api/posts`;
+        const response = await fetch(requestUrl, {
+          method: "GET",
+          cache: "no-store",
+        });
+        if (!response.ok) {
+          throw new Error("データの取得に失敗しました");
+        }
+        const postResponse: PostApiResponse[] = await response.json();
+        console.log(postResponse)
+        setPosts(
+          postResponse.map((rawPost) => ({
+            id: rawPost.id,
+            title: rawPost.title,
+            repository: rawPost.repository,
+            app_url: rawPost.app_url,
+            createdAt: rawPost.createdAt,
+            article: rawPost.article,
+            categories: rawPost.categories.map((category: any) => ({
+              id: category.category.id,
+              name: category.category.name || "No Name",
+              detail: category.category.detail || "No Detail",
+            })),
+          }))
+        );
+      } catch (e) {
+        setFetchError(
+          e instanceof Error ? e.message : "予期せぬエラーが発生しました"
+        );
+      }
+    };
+    fetchPosts();
+  }, []);
+  if (fetchError) {
+    return <div>{fetchError}</div>;
+  }
+  // 投稿データが取得できるまでは「Loading...」を表示
+  if (!posts) {
+    return (
+      <div className="text-gray-500">
+        <FontAwesomeIcon icon={faSpinner} className="mr-1 animate-spin" />
+        Loading...
+      </div>
+    );
+  }
+  console.log(posts)
+  // 投稿データが取得できたら「投稿記事の一覧」を出力
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+    <main className="flex flex-col items-center justify-center">
+      <div className="mr-4 mb-4 self-end">
+        <Link href="/admin" className="text-blue-500 underline">
+          管理者機能
+        </Link>
+      </div>
+      <div className="bg-blue-300 p-4 rounded-lg shadow-md mb-4 flex flex-col items-center w-full">
+      <img src="/githubicon.png" alt="GitHub Icon" className="w-48 h-48 mb-4" />
+      <div className="text-4xl font-extrabold mb-4 text-orange-800">
+        <strong>Higashi Yuga</strong>
+      </div>
+      </div>
+      <div className="w-full mb-4">
+        <button
+          className="w-full p-4 bg-blue-500 text-white font-semibold rounded-lg shadow-md transition-colors duration-700 ease-in-out hover:bg-blue-700 flex justify-between items-center"
+          onClick={() => setShowDetails1(!showDetails1)}
         >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+            <span className="mx-auto text-2xl font-serif">Personal Information</span>
+          <span className="ml-2">{showDetails1 ? '-' : '+'}</span>
+        </button>
+        {showDetails1 && (
+          <div>
+            <details className="mt-4 p-4 bg-gray-100 rounded-lg shadow-inner text-left open:bg-blue-300">
+              <summary className="text-lg font-serif cursor-pointer">Country/Region</summary>
+              <div className="mt-2 p-2 font-serif text-lg">
+              Japan
+              </div>
+            </details>
+            <details className="mt-4 p-4 bg-gray-100 rounded-lg shadow-inner text-left open:bg-blue-300">
+              <summary className="text-lg font-serif cursor-pointer">Age/Grade</summary>
+              <div className="mt-2 p-2 font-serif text-lg">
+              18/3
+                </div>
+            </details>
+            <details className="mt-4 p-4 bg-gray-100 rounded-lg shadow-inner text-left open:bg-blue-300">
+              <summary className="text-lg font-serif cursor-pointer">Affiliation</summary>
+              <div className="mt-2 p-2 font-serif text-lg">
+              Osaka Metropolitan University College of Technology
+                </div>
+            </details>
+          </div>
+        )}
+      </div>
+      <div className="w-full mb-4">
+        <button
+          className="w-full p-4 bg-blue-500 text-white font-semibold rounded-lg shadow-md transition-colors duration-700 ease-in-out hover:bg-blue-700 flex justify-between items-center"
+          onClick={() => setShowDetails2(!showDetails2)}
         >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+            <span className="mx-auto text-2xl font-serif">Skill</span>
+          <span className="ml-2">{showDetails2 ? '-' : '+'}</span>
+        </button>
+        {showDetails2 && (
+            <div>
+            {posts.map((post) => (
+              <div key={post.id}>
+              <div className="mt-4 p-4 bg-gray-100 rounded-lg shadow-inner text-left open:bg-blue-300">
+                <h3 className="text-lg font-serif">language,engine</h3>
+                {post.categories.map((category) => (
+                <details key={category.id} className="mt-2 p-2 bg-gray-200 rounded-lg shadow-inner">
+                  <summary className="text-md font-serif cursor-pointer">{category.name}</summary>
+                  <div className="mt-1 p-1 font-serif text-md">
+                  {category.detail}
+                  </div>
+                </details>
+                ))}
+              </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="w-full mb-4">
+        <button
+          className="w-full p-4 bg-blue-500 text-white font-semibold rounded-lg shadow-md transition-colors duration-700 ease-in-out hover:bg-blue-700 flex justify-between items-center"
+          onClick={() => setShowDetails3(!showDetails3)}
         >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+            <span className="mx-auto text-2xl font-serif">Production</span>
+          <span className="ml-2">{showDetails3 ? '-' : '+'}</span>
+        </button>
+        {showDetails3 && (
+          <div className="space-y-3 w-full">
+          <br/>
+          {posts.map((post) => (
+            <PostSummary key={post.id} post={post} />
+          ))}
+          </div>
+        )}
+      </div>
+      <div className="mb-1 flex justify-end w-full">
+      </div>
+    </main>
   );
-}
+};
+export default Page;
