@@ -121,14 +121,12 @@ const Page: React.FC = () => {
             <div>
               {Array.from(new Set(posts.flatMap(post => post.categories.map(category => category.name)))).map(categoryName => (
               <div key={categoryName} className="mt-4 p-4 bg-gray-100 rounded-lg shadow-inner text-left open:bg-blue-300">
-                <h3 className="text-lg font-serif">{categoryName}</h3>
-                {posts.flatMap(post => post.categories.filter(category => category.name === categoryName)).map(category => (
-                <details key={category.id} className="mt-2 p-2 rounded-lg bg-gray-200 shadow-inner">
-                  <div className="mt-1 p-1 font-serif text-lg">
-                  {category.detail}
-                  </div>
-                </details>
-                ))}
+              <h3 className="text-lg font-serif">{categoryName}</h3>
+              <details className="mt-2 p-2 rounded-lg bg-gray-200 shadow-inner">
+                <div className="mt-1 p-1 font-serif text-lg">
+                {posts.flatMap(post => post.categories.filter(category => category.name === categoryName))[0].detail}
+                </div>
+              </details>
               </div>
               ))}
             </div>

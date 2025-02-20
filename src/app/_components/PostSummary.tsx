@@ -10,7 +10,6 @@ type Props = {
 
 const PostSummary: React.FC<Props> = (props) => {
   const { post } = props;
-  const dtFmt = "YYYY-MM-DD";
   const repsafeHTML = DOMPurify.sanitize(post.repository, {
     ALLOWED_TAGS: ["b", "strong", "i", "em", "u", "br"],
   });
@@ -18,9 +17,11 @@ const PostSummary: React.FC<Props> = (props) => {
     ALLOWED_TAGS: ["b", "strong", "i", "em", "u", "br"],
   });
   return (
-    <div className="border border-slate-400 p-3">
+    <div className="mt-4 p-4 bg-gray-100 rounded-lg shadow-inner text-left open:bg-blue-300 mx-2">
       <div className="flex items-center justify-between">
-        <div>{dayjs(post.createdAt).format(dtFmt)}</div>
+        <Link href={`/posts/${post.id}`}>
+          <div className="mb-1 text-lg font-bold">{post.title}</div>
+        </Link>
         <div className="flex space-x-1.5">
           {post.categories.map((category) => (
             <div
@@ -36,8 +37,6 @@ const PostSummary: React.FC<Props> = (props) => {
           ))}
         </div>
       </div>
-      <Link href={`/posts/${post.id}`}>
-        <div className="mb-1 text-lg font-bold">{post.title}</div>
         <div>
             リポジトリのリンク
             <a
@@ -54,7 +53,6 @@ const PostSummary: React.FC<Props> = (props) => {
                 dangerouslySetInnerHTML={{ __html: appsafeHTML }}
             />
         </div>
-      </Link>
     </div>
   );
 };
