@@ -124,7 +124,6 @@ const Page: React.FC = () => {
                 <h3 className="text-lg font-serif">{categoryName}</h3>
                 {posts.flatMap(post => post.categories.filter(category => category.name === categoryName)).map(category => (
                 <details key={category.id} className="mt-2 p-2 bg-gray-200 rounded-lg shadow-inner">
-                  <summary className="text-lg font-serif cursor-pointer">{category.name}</summary>
                   <div className="mt-1 p-1 font-serif text-lg">
                   {category.detail}
                   </div>

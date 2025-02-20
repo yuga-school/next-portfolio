@@ -31,10 +31,10 @@ const Page: React.FC = () => {
           app_url: rawPost.app_url,
           createdAt: rawPost.createdAt,
           article: rawPost.article,
-          categories: rawPost.categories.map((category: { id: string; name: string; detail: string }) => ({
-            id: category.id,
-            name: category.name,
-            detail: category.detail,
+          categories: rawPost.categories.map((category: any) => ({
+            id: category.category.id,
+            name: category.category.name || "No Name",
+            detail: category.category.detail || "No Detail",
           })),
         }))
       );
