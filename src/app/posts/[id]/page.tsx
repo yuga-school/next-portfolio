@@ -5,7 +5,6 @@ import type { Post } from "@/app/_types/Post";
 import type { PostApiResponse } from "@/app/_types/PostApiResponse";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
-import Image from "next/image";
 import { Category } from "@/app/_types/Category";
 import DOMPurify from "isomorphic-dompurify";
 
@@ -99,23 +98,33 @@ const safeHTML = post.article.map((item) => {
 });
   return (
     <main>
-      <div className="space-y-2">
-        <div className="mb-2 text-2xl font-bold">{post.title}</div>
-        <div>
-          リポジトリのリンク:{" "}
-          <a href={post.repository} target="_blank" rel="noopener noreferrer">
-            {post.repository}
-          </a>
+      <div className="flex justify-center">
+        <div className="space-y-2 w-full max-w-2xl">
+                <h1 className="p-6 mb-6 mt-6 text-5xl font-bold text-center border-b-4 border-blue-500 bg-gradient-to-r from-blue-400 to-blue-300 text-white shadow-lg rounded-md">
+                  {post.title}
+                </h1>
+            <div className="p-4 border rounded-md bg-blue-100">
+            リポジトリのリンク:{" "}
+            <a href={post.repository} target="_blank" rel="noopener noreferrer">
+              {post.repository}
+            </a>
+            </div>
+          <div className="p-4 border rounded-md bg-blue-100">
+            アプリのリンク:{" "}
+            <a href={post.app_url} target="_blank" rel="noopener noreferrer">
+              {post.app_url}
+            </a>
+          </div>
+            {safeHTML.map((html, index) => (
+                <div key={index}>
+                {html.type === "text" ? (
+                <div className="p-4 border rounded-md bg-gray-100" dangerouslySetInnerHTML={{ __html: html.content }} />
+                ) : (
+                <div dangerouslySetInnerHTML={{ __html: html.content }} />
+                )}
+                </div>
+            ))}
         </div>
-        <div>
-          アプリのリンク:{" "}
-          <a href={post.app_url} target="_blank" rel="noopener noreferrer">
-            {post.app_url}
-          </a>
-        </div>
-        {safeHTML.map((html, index) => (
-          <div key={index} dangerouslySetInnerHTML={{ __html: html.content }} />
-        ))}
       </div>
     </main>
   );
