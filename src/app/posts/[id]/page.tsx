@@ -97,10 +97,10 @@ const safeHTML = post.article.map((item) => {
     return { type: item.type, content: "" };
 });
   return (
-    <main>
+    <main className="p-4 sm:p-6 lg:p-8">
       <div className="flex justify-center">
-        <div className="space-y-2 w-full max-w-2xl">
-                <h1 className="p-6 mb-6 mt-6 text-5xl font-bold text-center border-b-4 border-blue-500 bg-gradient-to-r from-blue-400 to-blue-300 text-white shadow-lg rounded-md">
+        <div className="space-y-4 w-full max-w-2xl">
+                <h1 className="p-4 sm:p-6 my-6 text-3xl sm:text-4xl lg:text-5xl font-bold text-center border-b-4 border-blue-500 bg-gradient-to-r from-blue-400 to-blue-300 text-white shadow-lg rounded-md">
                   {post.title}
                 </h1>
             <div className="p-4 border rounded-md bg-blue-100">
