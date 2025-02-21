@@ -13,7 +13,69 @@ const Page: React.FC = () => {
   const [showDetails1, setShowDetails1] = useState<boolean>(false);
   const [showDetails2, setShowDetails2] = useState<boolean>(false);
   const [showDetails3, setShowDetails3] = useState<boolean>(false);
+  const [subposts, setsubPosts] = useState<Post[] | null>(null);
+  const [categories, setcategories] = useState<string[] | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string[] | null>(null);
+  const [keyword, setkeyword] = useState<string>("");
+  const [searchMode, setSearchMode] = useState<"OR" | "AND">("OR");
+  const handleSearch = () => {
+    const filteredPosts = posts?.filter((post) => {
+      const queryWords = searchQuery;
+      if (searchMode === "OR") {
+        return queryWords?.some((word) =>
+          post.categories.some((category) => category.name.includes(word))
+        );
+      } else {
+        return queryWords?.every((word) =>
+          post.categories.some((category) => category.name.includes(word))
+        );
+      }
+    });
+    setsubPosts(filteredPosts || null);
+  };
 
+  const getEditDistance = (a: string, b: string): number => {
+    const matrix = Array.from({ length: a.length + 1 }, () =>
+      Array(b.length + 1).fill(0)
+    );
+
+    const lowerA = a.toLowerCase();
+    const lowerB = b.toLowerCase();
+
+    for (let i = 0; i <= lowerA.length; i++) {
+      for (let j = 0; j <= lowerB.length; j++) {
+        if (i === 0) {
+          matrix[i][j] = j;
+        } else if (j === 0) {
+          matrix[i][j] = i;
+        } else if (lowerA[i - 1] === lowerB[j - 1]) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] =
+            1 +
+            Math.min(matrix[i - 1][j], matrix[i][j - 1], matrix[i - 1][j - 1]);
+        }
+      }
+    }
+
+    return matrix[lowerA.length][lowerB.length];
+  };
+  const getTopCategories = (searchQuery: string): string[] => {
+    const queryWords = searchQuery;
+    const categoryArray = categories;
+    const categoryDistances: { category: string; distance: number }[] = [];
+    categoryArray?.forEach((category) => {
+      const distance = getEditDistance(queryWords, category);
+      categoryDistances.push({
+        category,
+        distance: distance / Number(category.length),
+      });
+    });
+
+    categoryDistances.sort((a, b) => a.distance - b.distance);
+
+    return categoryDistances.slice(0, 10).map((item) => item.category);
+  };
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -26,7 +88,6 @@ const Page: React.FC = () => {
           throw new Error("データの取得に失敗しました");
         }
         const postResponse: PostApiResponse[] = await response.json();
-        console.log(postResponse)
         setPosts(
           postResponse.map((rawPost) => ({
             id: rawPost.id,
@@ -42,6 +103,15 @@ const Page: React.FC = () => {
             })),
           }))
         );
+        const categoriesSet = new Set<string>();
+        postResponse?.map((post) => {
+          post.categories.map((category:any) => {
+            categoriesSet.add(category.category.name);
+          });
+        });
+        console.log(categories)
+        setcategories(Array.from(categoriesSet));
+        setsubPosts(posts);
       } catch (e) {
         setFetchError(
           e instanceof Error ? e.message : "予期せぬエラーが発生しました"
@@ -61,7 +131,18 @@ const Page: React.FC = () => {
       </div>
     );
   }
-  console.log(posts)
+  const addKeyword = (keyword: string) => {
+    setSearchQuery((prev) => {
+      if (!prev?.includes(keyword)) {
+        return prev ? [...prev, keyword] : [keyword];
+      }
+      return prev;
+    });
+  };
+
+  const removeKeyword = (keyword: string) => {
+    setSearchQuery((prev) => prev?.filter((k) => k !== keyword) || null);
+  };
   return (
     <main className="flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
       <div className="self-end mb-4">
@@ -139,8 +220,64 @@ const Page: React.FC = () => {
         </button>
         {showDetails3 && (
           <div className="space-y-3 w-full">
+            <input
+              type="text"
+              value={keyword}
+              onChange={(e) => setkeyword(e.target.value)}
+              placeholder="検索語句を入力"
+              className="mr-2 border p-2"
+            />
+            <div className="mt-2">
+              <div className="mb-2 font-bold">キーワード一覧</div>
+              <div className="flex flex-wrap">
+                {searchQuery?.map((keyword, index) => (
+                  <div key={index} className="relative mb-2 mr-2">
+                    <span className="rounded bg-gray-200 px-2 py-1 text-sm">
+                      {keyword}
+                    </span>
+                    <button
+                      onClick={() => removeKeyword(keyword)}
+                      className="absolute right-0 top-0 -mr-1 -mt-1 rounded-full bg-red-500 p-1 text-xs text-white opacity-50 hover:bg-red-600 hover:opacity-100"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mt-2">
+              <div className="mb-2 font-bold">カテゴリ候補</div>
+              <div className="flex flex-wrap">
+                {getTopCategories(keyword).map((category, index) => (
+                  <button
+                    key={index}
+                    onClick={() => addKeyword(category)}
+                    className="mb-2 mr-2 rounded bg-blue-200 px-2 py-1 text-sm hover:bg-blue-300"
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <select
+              value={searchMode}
+              onChange={(e) => setSearchMode(e.target.value as "OR" | "AND")}
+              className="mr-2 border p-2"
+            >
+              <option value="OR">OR</option>
+              <option value="AND">AND</option>
+            </select>
+            <button onClick={handleSearch} className="bg-blue-500 p-2 text-white">
+              検索
+            </button>
+            {subposts && (
+              <span className="ml-2">
+                {subposts?.length} 件の投稿が見つかりました
+              </span>
+            )}
             <br />
-            {posts.map((post) => (
+            {subposts?.map((post) => (
               <PostSummary key={post.id} post={post} />
             ))}
           </div>

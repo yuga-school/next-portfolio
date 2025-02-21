@@ -118,9 +118,9 @@ const safeHTML = post.article.map((item) => {
             {safeHTML.map((html, index) => (
                 <div key={index}>
                 {html.type === "text" ? (
-                <div className="p-4 border rounded-md bg-gray-100" dangerouslySetInnerHTML={{ __html: html.content }} />
+                  <div className="p-4 border rounded-md bg-gray-100" dangerouslySetInnerHTML={{ __html: html.content }} />
                 ) : (
-                <div dangerouslySetInnerHTML={{ __html: html.content }} />
+                  <div className="p-4 border rounded-md border-gray-900" dangerouslySetInnerHTML={{ __html: html.content }} />
                 )}
                 </div>
             ))}
