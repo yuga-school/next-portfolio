@@ -7,34 +7,44 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
- 
+
+model User {
+  id          String   @id @default(uuid())
+  name        String
+  links       Json
+  country     String
+  age         String
+  affiliation String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model Post {
-  id             String         @id @default(uuid())
-  title          String
-  repository     String
-  app_url        String
-  article        Json           // JSON配列。例: [{ type: "text", text: "本文" }, { type: "CoverImage", url: { url: "...", width: 100, height: 100 } }]
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  id         String         @id @default(uuid())
+  title      String
+  repository String
+  app_url    String
+  article    Json
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
   categories PostCategory[]
 }
 
 model Category {
-  id             String         @id @default(uuid())
-  name           String         @unique
-  detail         String         
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  posts PostCategory[]
+  id        String         @id @default(uuid())
+  name      String         @unique
+  detail    String
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  posts     PostCategory[]
 }
 
 model PostCategory {
-  id          String   @id @default(uuid())
-  postId      String
-  categoryId  String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  id         String   @id @default(uuid())
+  postId     String
+  categoryId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 }

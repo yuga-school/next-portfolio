@@ -35,6 +35,12 @@ const Page: React.FC = () => {
             /admin/categories/new
           </Link>
         </li>
+        <li>
+          <FontAwesomeIcon icon={faArrowRight} className="mr-2" />
+          <Link className="text-blue-500 underline" href="/admin/user">
+            /admin/user
+          </Link>
+        </li>
       </ul>
     </main>
   );

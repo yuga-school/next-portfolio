@@ -7,6 +7,14 @@ import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
 import type { PostApiResponse } from "@/app/_types/PostApiResponse";
 
+type User = {
+  name: string;
+  country: string;
+  age: string;
+  affiliation: string;
+  links: { url: string; icon: string }[];
+};
+
 const Page: React.FC = () => {
   const [posts, setPosts] = useState<Post[] | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -18,6 +26,7 @@ const Page: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string[] | null>(null);
   const [keyword, setkeyword] = useState<string>("");
   const [searchMode, setSearchMode] = useState<"OR" | "AND">("OR");
+  const [user, setUser] = useState<User | null>(null);
   const handleSearch = () => {
     const filteredPosts = posts?.filter((post) => {
       const queryWords = searchQuery;
@@ -77,6 +86,24 @@ const Page: React.FC = () => {
     return categoryDistances.slice(0, 10).map((item) => item.category);
   };
   useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const requestUrl = `/api/user`;
+        const response = await fetch(requestUrl, {
+          method: "GET",
+          cache: "no-store",
+        });
+        if (!response.ok) {
+          throw new Error("ユーザー情報の取得に失敗しました");
+        }
+        const userData: User[] = await response.json();
+        setUser(userData[0]);
+      } catch (error) {
+        setFetchError(
+          error instanceof Error ? error.message : "予期せぬエラーが発生しました"
+        );
+      }
+    };
     const fetchPosts = async () => {
       try {
         const requestUrl = `/api/posts`;
@@ -118,6 +145,7 @@ const Page: React.FC = () => {
         );
       }
     };
+    fetchUser();
     fetchPosts();
   }, []);
   if (fetchError) {
@@ -153,7 +181,24 @@ const Page: React.FC = () => {
       <div className="bg-blue-300 p-4 rounded-lg shadow-md mb-4 flex flex-col items-center w-full max-w-2xl">
         <img src="/githubicon.png" alt="GitHub Icon" className="w-24 h-24 sm:w-32 sm:h-32 lg:w-48 lg:h-48 mb-4" />
         <div className="text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-4 text-orange-800">
-          <strong>Higashi Yuga</strong>
+          <strong>{user?.name}</strong>
+        </div>
+        <div className="flex space-x-4 bg-gray-100 p-1 rounded-lg shadow-inner">
+          {user?.links.map((link, index) => (
+            <a
+              key={index}
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:opacity-75 transition-opacity duration-200"
+            >
+              <img
+                src={link.icon}
+                alt={`Link to ${link.url}`}
+                className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12"
+              />
+            </a>
+          ))}
         </div>
       </div>
       <div className="w-full max-w-2xl mb-4">
@@ -169,19 +214,19 @@ const Page: React.FC = () => {
             <details className="mt-4 p-4 bg-gray-100 rounded-lg shadow-inner text-left open:bg-blue-300">
               <summary className="text-lg font-serif cursor-pointer">Country/Region</summary>
               <div className="mt-2 p-2 font-serif text-lg">
-                Japan
+                {user?.country}
               </div>
             </details>
             <details className="mt-4 p-4 bg-gray-100 rounded-lg shadow-inner text-left open:bg-blue-300">
               <summary className="text-lg font-serif cursor-pointer">Age/Grade</summary>
               <div className="mt-2 p-2 font-serif text-lg">
-                18/3
+                {user?.age}
               </div>
             </details>
             <details className="mt-4 p-4 bg-gray-100 rounded-lg shadow-inner text-left open:bg-blue-300">
               <summary className="text-lg font-serif cursor-pointer">Affiliation</summary>
               <div className="mt-2 p-2 font-serif text-lg">
-                Osaka Metropolitan University College of Technology
+                {user?.affiliation}
               </div>
             </details>
           </div>
