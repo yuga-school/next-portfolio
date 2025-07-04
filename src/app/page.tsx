@@ -27,6 +27,8 @@ const Page: React.FC = () => {
   const [keyword, setkeyword] = useState<string>("");
   const [searchMode, setSearchMode] = useState<"OR" | "AND">("OR");
   const [user, setUser] = useState<User | null>(null);
+
+  // 検索ボタン押下時のフィルタ
   const handleSearch = () => {
     const filteredPosts = posts?.filter((post) => {
       const queryWords = searchQuery;
@@ -43,6 +45,7 @@ const Page: React.FC = () => {
     setsubPosts(filteredPosts || null);
   };
 
+  // レーベンシュタイン距離
   const getEditDistance = (a: string, b: string): number => {
     const matrix = Array.from({ length: a.length + 1 }, () =>
       Array(b.length + 1).fill(0)
@@ -69,6 +72,8 @@ const Page: React.FC = () => {
 
     return matrix[lowerA.length][lowerB.length];
   };
+
+  // カテゴリ候補
   const getTopCategories = (searchQuery: string): string[] => {
     const queryWords = searchQuery;
     const categoryArray = categories;
@@ -85,6 +90,8 @@ const Page: React.FC = () => {
 
     return categoryDistances.slice(0, 10).map((item) => item.category);
   };
+
+  // 初回データ取得
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -115,30 +122,32 @@ const Page: React.FC = () => {
           throw new Error("データの取得に失敗しました");
         }
         const postResponse: PostApiResponse[] = await response.json();
-        setPosts(
-          postResponse.map((rawPost) => ({
-            id: rawPost.id,
-            title: rawPost.title,
-            repository: rawPost.repository,
-            app_url: rawPost.app_url,
-            createdAt: rawPost.createdAt,
-            article: rawPost.article,
-            categories: rawPost.categories.map((category: any) => ({
-              id: category.category.id,
-              name: category.category.name || "No Name",
-              detail: category.category.detail || "No Detail",
-            })),
-          }))
-        );
+        const mappedPosts = postResponse.map((rawPost) => ({
+          id: rawPost.id,
+          title: rawPost.title,
+          repository: rawPost.repository,
+          app_url: rawPost.app_url,
+          createdAt: rawPost.createdAt,
+          article: rawPost.article,
+          categories: rawPost.categories.map((category: any) => ({
+            id: category.category.id,
+            name: category.category.name || "No Name",
+            detail: category.category.detail || "No Detail",
+          })),
+        }));
+        setPosts(mappedPosts);
+
+        // カテゴリ一覧
         const categoriesSet = new Set<string>();
-        postResponse?.map((post) => {
-          post.categories.map((category:any) => {
+        postResponse?.forEach((post) => {
+          post.categories.forEach((category: any) => {
             categoriesSet.add(category.category.name);
           });
         });
-        console.log(categories)
         setcategories(Array.from(categoriesSet));
-        setsubPosts(posts);
+
+        // ここでsubpostsも初期化（全件表示）
+        setsubPosts(mappedPosts);
       } catch (e) {
         setFetchError(
           e instanceof Error ? e.message : "予期せぬエラーが発生しました"
@@ -148,6 +157,7 @@ const Page: React.FC = () => {
     fetchUser();
     fetchPosts();
   }, []);
+
   if (fetchError) {
     return <div>{fetchError}</div>;
   }
@@ -159,6 +169,8 @@ const Page: React.FC = () => {
       </div>
     );
   }
+
+  // キーワード追加
   const addKeyword = (keyword: string) => {
     setSearchQuery((prev) => {
       if (!prev?.includes(keyword)) {
@@ -168,9 +180,11 @@ const Page: React.FC = () => {
     });
   };
 
+  // キーワード削除
   const removeKeyword = (keyword: string) => {
     setSearchQuery((prev) => prev?.filter((k) => k !== keyword) || null);
   };
+
   return (
     <main className="flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
       <div className="self-end mb-4">
@@ -179,7 +193,7 @@ const Page: React.FC = () => {
         </Link>
       </div>
       <div className="bg-blue-300 p-4 rounded-lg shadow-md mb-4 flex flex-col items-center w-full max-w-2xl">
-        <img src="/githubicon.png" alt="GitHub Icon" className="w-24 h-24 sm:w-32 sm:h-32 lg:w-48 lg:h-48 mb-4" />
+        <img src="/githubicon.png" alt="GitHub Icon" className="size-24 sm:size-32 lg:size-48 mb-4" />
         <div className="text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-4 text-orange-800">
           <strong>{user?.name}</strong>
         </div>
@@ -195,7 +209,7 @@ const Page: React.FC = () => {
               <img
                 src={link.icon}
                 alt={`Link to ${link.url}`}
-                className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12"
+                className="size-8 sm:size-10 lg:size-12"
               />
             </a>
           ))}
